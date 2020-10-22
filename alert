@@ -1,0 +1,331 @@
+import React, { Component } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+import DeleteRoundedIcon from '@material-ui/icons/DeleteRounded';
+import { Button, TableFooter, TablePagination } from '@material-ui/core';
+import { AppBar,Toolbar,Typography,Grid } from '@material-ui/core';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import PropTypes from 'prop-types';
+import { useTheme } from '@material-ui/core/styles';
+import IconButton from '@material-ui/core/IconButton';
+import FirstPageIcon from '@material-ui/icons/FirstPage';
+import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
+import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
+import LastPageIcon from '@material-ui/icons/LastPage';
+import serviceproviderService from './../Services/serviceproviderService';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import historyService from '../Services/historyService';
+
+const mystyle = {
+    fontFamily: "Arial",
+    backgroundColor:"transparent",
+    };
+const useStyles1 = makeStyles((theme) => ({
+  root: {
+    flexShrink: 0,
+    marginLeft: theme.spacing(2.5),
+  },
+}));
+
+function TablePaginationActions(props) {
+  const classes = useStyles1();
+  const theme = useTheme();
+  const { count, page, rowsPerPage, onChangePage } = props;
+
+  const handleFirstPageButtonClick = (event) => {
+    onChangePage(event, 0);
+  };
+
+  const handleBackButtonClick = (event) => {
+    onChangePage(event, page - 1);
+  };
+
+  const handleNextButtonClick = (event) => {
+    onChangePage(event, page + 1);
+  };
+
+  const handleLastPageButtonClick = (event) => {
+    onChangePage(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
+  };
+
+  return (
+    <div className={classes.root}>
+      <IconButton
+        onClick={handleFirstPageButtonClick}
+        disabled={page === 0}
+        aria-label="first page"
+      >
+        {theme.direction === 'rtl' ? <LastPageIcon /> : <FirstPageIcon />}
+      </IconButton>
+      <IconButton onClick={handleBackButtonClick} disabled={page === 0} aria-label="previous page">
+        {theme.direction === 'rtl' ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
+      </IconButton>
+      <IconButton
+        onClick={handleNextButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="next page"
+      >
+        {theme.direction === 'rtl' ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
+      </IconButton>
+      <IconButton
+        onClick={handleLastPageButtonClick}
+        disabled={page >= Math.ceil(count / rowsPerPage) - 1}
+        aria-label="last page"
+      >
+        {theme.direction === 'rtl' ? <FirstPageIcon /> : <LastPageIcon />}
+      </IconButton>
+    </div>
+  );
+}
+
+TablePaginationActions.propTypes = {
+  count: PropTypes.number.isRequired,
+  onChangePage: PropTypes.func.isRequired,
+  page: PropTypes.number.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+};
+
+
+
+
+export default class ViewsProvider extends Component {
+  constructor(){
+    super();
+    this.state={
+     servicestations:[],
+     page:0,
+     rowsPerPage:5,
+     count:0,
+     open:false,
+     id:""
+    }
+
+  }
+
+  handleClickOpen=(id)=>{
+    this.setState({
+      open:true,
+      id:`${id}`,
+    })
+  };
+
+  handleClickclose = () => {
+    this.setState({
+      open:false
+    })
+  }
+  componentDidMount(){
+    this.getallservicestation();
+  }
+
+  
+  
+
+
+  handleChangePage = (event,newPage) => {
+    this.setState({
+      page:newPage
+    });
+
+    serviceproviderService.getallservicestation(newPage,5)
+  .then((response) => {
+    console.log(response.data.data);
+    this.setState({
+        servicestations:response.data.data,
+      count:response.data.Totalnoofelements      
+    })
+    console.log(this.state.users);
+  })
+  };
+
+  getallservicestation = () => {
+    serviceproviderService.getAllUserInPage(this.state.page,5)
+    .then((response) => {
+      this.setState ({
+        servicestations:response.data.data,
+        count:response.data.data.Totalnoofelements
+      })
+    })
+  }
+  deleteservstationkById = () => {
+       
+    serviceproviderService.deleteservstationkById(this.state.id)
+       .then(res => {
+           this.setState({message : 'Feedback deleted successfully.'});
+           this.setState({servicestations: this.state.servicestations.filter(servicestations => servicestations.id !== this.state.id)});
+       })
+       this.setState ({
+        open:false
+      })
+}
+
+
+  handleChangeRowsPerPage = (event) => {
+    this.setState({
+      page:0,
+      rowsPerPage:event.target.value
+    })
+  };
+  
+  
+render(){
+  const users = this.state.servicestations;
+
+  return (
+
+
+    <div className="provide">
+        {/* <div>
+                <AppBar position="static" style={mystyle}>
+                    <Toolbar>
+                    
+                        
+                        <Typography variant="h6" >
+                            <img src="https://dynamic.brandcrowd.com/preview/logodraft/207be0dc-ebe7-4be0-9c20-327e88b66c5f/image/large.png" style={{width:"80px",height:"70px"}} ></img>
+                        </Typography>
+                        
+                        <Grid item xs={9}>
+                        <Button href="/Home"  variant="contained"  style={{backgroundColor:"black",color:"gold",marginLeft:10}}>HOME</Button>
+
+                        </Grid>
+
+                        <Grid item xs={2}>
+                        <Button  variant="contained"  href="/feedbacks"  style={{backgroundColor:"black",color:"gold",marginLeft:10}}>Feedbacks</Button>
+                        </Grid>
+
+
+                        <Grid item xs={2}>
+                        <Button  variant="contained"  href="/History"  style={{backgroundColor:"black",color:"gold",marginLeft:10}}>History</Button>
+                        </Grid>
+
+                        <Grid item xs={2}>
+                        <Button  variant="contained"  href="/Profile"  style={{backgroundColor:"black",color:"gold",marginLeft:10}}>Profile</Button>
+                        </Grid>
+                        <Grid item xs={1} >
+                        <Button  variant="contained"  style={{backgroundColor:"black",color:"gold",marginLeft:10}}>Logout</Button>
+                        </Grid>
+                    </Toolbar>
+                </AppBar>
+            </div> */}
+
+
+
+
+
+      <Paper>
+    <TableContainer style={{backgroundColor:"white",marginTop:80, border:"2px solid black"}}  component={Paper}>
+      <Table aria-label="simple table">
+        <TableHead>
+          <TableRow style={{backgroundColor:"black"}}>
+          <TableCell style={{color:"gold"}}></TableCell>
+          <TableCell style={{color:"gold"}}></TableCell>
+            <TableCell style={{color:"gold"}}><b>CompanyName</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>PhoneNumber</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>EmailAddress</b></TableCell>
+            <TableCell style={{color:"gold"}}><b>Address</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>WorkDistance</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>Latitude</b></TableCell>
+            <TableCell style={{color:"gold"}}><b>Longtitude</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>Opentime</b></TableCell>
+            {/* <TableCell style={{color:"gold"}} align="right"><b>Finishtime</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>Description</b></TableCell>  */}
+            <TableCell style={{color:"gold"}} align="right"><b>serviceType</b></TableCell>
+            <TableCell style={{color:"gold"}} align="right"><b>vehicleTypes</b></TableCell> 
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {users.map(row =>(
+          
+            <TableRow key={row.id}>
+{/* onClick= {()=>this.deleteservstationkById(row.id)} */}
+
+                       <TableCell align="left" onClick= {()=>this.handleClickOpen(row.id)} ><IconButton ><DeleteIcon color="error"  inputProps={{ 'aria-label': 'DeleteIcon with default color' }}/></IconButton>
+
+                       <IconButton   ></IconButton > </TableCell>        
+                       
+                       
+                              <TableCell><Button href={"/updateService/"+row.id } onClick={this.updatesProvider} ><EditIcon/></Button></TableCell>
+              <TableCell component="th" scope="row">{row.companyName}</TableCell>
+              <TableCell align="right">{row.phoneNumber}</TableCell>
+              <TableCell align="right">{row.emailAddress}</TableCell>
+              <TableCell align="right">{row.address}</TableCell>
+              <TableCell align="right">{row.workDistance}</TableCell>
+              <TableCell align="right">{row.latitude}</TableCell>
+              <TableCell align="right">{row.longtitude}</TableCell>
+              <TableCell align="right">{row.opentime}</TableCell>
+              <TableCell align="right">{row.finishtime}</TableCell>
+               <TableCell align="right">{row.description}</TableCell>
+             <TableCell align="right">{row.serviceType}</TableCell>
+              <TableCell align="right">{row.vehicleTypes}</TableCell> 
+            </TableRow>
+            ))}
+{/* companyName:this.state.companyName,
+  phoneNumber:this.state.phoneNumber,
+  emailAddress:this.state.emailAddress,
+  address:this.state.address,
+  workDistance:this.state.workDistance,
+  latitude:this.state.latitude,
+  longtitude:this.state.longtitude,
+  opentime:this.state.opentime,
+  finishtime:this.state.finishtime,
+  description:this.state.description,
+  serviceType:this.state.serviceType,
+  vehicleTypes:this.state.vehicleTypes, */}
+            
+          
+        </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TablePagination
+              count={this.state.count}
+              rowsPerPage={this.state.rowsPerPage}
+              page={this.state.page}
+              SelectProps={{
+                inputProps: { 'aria-label': 'rows per page' },
+                native: true,
+              }}
+              onChangePage={this.handleChangePage}
+              onChangeRowsPerPage={this.handleChangeRowsPerPage}
+              ActionsComponent={TablePaginationActions}
+            />
+          </TableRow>
+        </TableFooter>
+      </Table>
+      <Dialog
+open={this.state.open}
+
+aria-labelledby="alert-dialog-title"
+aria-describedby="alert-dialog-description"
+>
+<DialogTitle style={{backgroundColor:"lightcyan"}} id="alert-dialog-title">{""}</DialogTitle>
+<DialogContent>
+<DialogContentText id="alert-dialog-description" style={{color:"blue"}}>
+Do you want to Delete
+</DialogContentText>
+</DialogContent>
+<DialogActions>
+<Button onClick={this.handleClickclose} color="primary">
+cancel
+</Button>
+<Button style={{color:"red"}} onClick= {()=>this.deleteservstationkById()}> 
+Delete
+</Button>
+</DialogActions>
+</Dialog>
+    </TableContainer>
+    </Paper>
+    </div>
+  );
+  }
+}
